@@ -1,5 +1,6 @@
 package com.crediya.api;
 
+import com.crediya.library.api.BaseHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -8,7 +9,7 @@ import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
-public class Handler {
+public class Handler extends BaseHandler{
 //private  final UseCase useCase;
 //private  final UseCase2 useCase2;
 
