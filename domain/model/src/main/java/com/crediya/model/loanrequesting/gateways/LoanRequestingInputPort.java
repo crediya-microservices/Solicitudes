@@ -3,6 +3,6 @@ package com.crediya.model.loanrequesting.gateways;
 import com.crediya.model.loanrequesting.LoanRequesting;
 import reactor.core.publisher.Mono;
 
-public interface LoanRequestingRepository {
-    Mono<LoanRequesting> Save(LoanRequesting loanRequesting, Integer stateId, Integer loanTypeId );
+public interface LoanRequestingInputPort {
+    Mono<LoanRequesting> save(LoanRequesting loanRequesting);
 }
