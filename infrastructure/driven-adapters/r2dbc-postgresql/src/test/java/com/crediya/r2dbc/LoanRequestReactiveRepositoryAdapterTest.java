@@ -1,7 +1,7 @@
 package com.crediya.r2dbc;
 
-import com.crediya.r2dbc.loanrequesting.LoanRequestReactiveRepository;
-import com.crediya.r2dbc.loanrequesting.LoanRequestReactiveRepositoryAdapter;
+import com.crediya.r2dbc.loanapplication.LoanApplicationReactiveRepository;
+import com.crediya.r2dbc.loanapplication.LoanApplicationReactiveRepositoryAdapter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,10 +21,10 @@ class LoanRequestReactiveRepositoryAdapterTest {
     // TODO: change four you own tests
 
     @InjectMocks
-    LoanRequestReactiveRepositoryAdapter repositoryAdapter;
+    LoanApplicationReactiveRepositoryAdapter repositoryAdapter;
 
     @Mock
-    LoanRequestReactiveRepository repository;
+    LoanApplicationReactiveRepository repository;
 
     @Mock
     ObjectMapper mapper;

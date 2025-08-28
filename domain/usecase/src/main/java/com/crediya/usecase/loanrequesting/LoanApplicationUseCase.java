@@ -1,8 +1,8 @@
-package com.crediya.usecase.loanrequesting;
+package com.crediya.usecase.loanApplication;
 
-import com.crediya.model.loanrequesting.LoanRequesting;
-import com.crediya.model.loanrequesting.gateways.LoanRequestingInputPort;
-import com.crediya.model.loanrequesting.gateways.LoanRequestingRepository;
+import com.crediya.model.loanapplication.LoanApplication;
+import com.crediya.model.loanapplication.gateways.LoanApplicationInputPort;
+import com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import com.crediya.model.loantype.LoanType;
 import com.crediya.model.loantype.gateways.LoanTypeRepository;
 import com.crediya.model.state.State;
@@ -13,25 +13,25 @@ import java.math.BigDecimal;
 import java.util.logging.Logger;
 
 
-public class LoanRequestingUseCase implements LoanRequestingInputPort {
-    private final LoanRequestingRepository loanRequestingRepository;
+public class LoanApplicationUseCase implements LoanApplicationInputPort {
+    private final LoanApplicationRepository loanApplicationRepository;
     private final LoanTypeRepository loanTypeRepository;
     private final StateRepository stateRepository;
-    private static final Logger logger = Logger.getLogger(LoanRequestingUseCase.class.getName());
+    private static final Logger logger = Logger.getLogger(LoanApplicationUseCase.class.getName());
     private static final String INITIAL_STATE = "Pendiente de revisión";
 
-    public LoanRequestingUseCase(LoanRequestingRepository loanRequestingRepository, LoanTypeRepository loanTypeRepository, StateRepository stateRepository) {
-        this.loanRequestingRepository = loanRequestingRepository;
+    public LoanApplicationUseCase(LoanApplicationRepository loanApplicationRepository, LoanTypeRepository loanTypeRepository, StateRepository stateRepository) {
+        this.loanApplicationRepository = loanApplicationRepository;
         this.loanTypeRepository = loanTypeRepository;
         this.stateRepository = stateRepository;
     }
 
     @Override
-    public Mono<LoanRequesting> save(LoanRequesting loanRequesting) {
-        logger.info("Iniciando registro de solicitud de préstamo para el usuario: " + loanRequesting.getEmail());
+    public Mono<LoanApplication> save(LoanApplication loanApplication) {
+        logger.info("Iniciando registro de solicitud de préstamo para el usuario: " + loanApplication.getEmail());
 
         return Mono.zip(
-                        loanTypeRepository.getLoanTypeByName(loanRequesting.getLoanType())
+                        loanTypeRepository.getLoanTypeByName(loanApplication.getLoanType())
                                 .switchIfEmpty(Mono.error(new RuntimeException("El tipo de préstamo no existe"))),
                         stateRepository.getStateByName(INITIAL_STATE)
                                 .switchIfEmpty(Mono.error(new RuntimeException("El estado inicial no existe")))
@@ -39,15 +39,15 @@ public class LoanRequestingUseCase implements LoanRequestingInputPort {
                     LoanType loanTypeEntity = tuple.getT1();
                     State stateEntity = tuple.getT2();
 
-                    validateAmount(loanRequesting.getAmount());
-                    validateAmountWithinLoanType(loanRequesting.getAmount(), loanTypeEntity);
+                    validateAmount(loanApplication.getAmount());
+                    validateAmountWithinLoanType(loanApplication.getAmount(), loanTypeEntity);
 
-                    loanRequesting.setState(INITIAL_STATE);
+                    loanApplication.setState(INITIAL_STATE);
 
                     logger.info("Validaciones superadas: tipo de préstamo y estado inicial correctos");
 
-                    return loanRequestingRepository.Save(
-                            loanRequesting,
+                    return loanApplicationRepository.Save(
+                            loanApplication,
                             stateEntity.getStateId(),
                             loanTypeEntity.getLoanTypeId()
                     );

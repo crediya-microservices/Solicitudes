@@ -1,8 +1,8 @@
 package com.crediya.api;
 
-import com.crediya.api.dto.CreateLoanRequestDTO;
-import com.crediya.api.mapper.LoanRequestMapper;
-import com.crediya.api.service.LoanRequestingService;
+import com.crediya.api.dto.CreateLoanApplicationDTO;
+import com.crediya.api.mapper.LoanApplicationMapper;
+import com.crediya.api.service.LoanApplicationService;
 import com.crediya.library.api.BaseHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,17 +15,17 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 @Slf4j
 public class Handler extends BaseHandler {
-    private final LoanRequestingService loanRequestingService;
-    private final LoanRequestMapper loanRequestMapper;
+    private final LoanApplicationService loanApplicationService;
+    private final LoanApplicationMapper loanApplicationMapper;
 
     public Mono<ServerResponse> listenSaveLoanRequest(ServerRequest serverRequest) {
         log.debug("Recibiendo petición para crear solicitud de préstamo");
 
-        return serverRequest.bodyToMono(CreateLoanRequestDTO.class)
+        return serverRequest.bodyToMono(CreateLoanApplicationDTO.class)
                 .doOnNext(dto -> log.debug("Payload recibido: {}", dto))
-                .map(loanRequestMapper::toModel)
-                .flatMap(loanRequestingService::saveLoanRequest)
-                .map(loanRequestMapper::toResponse)
-                .flatMap(loanRequestResponse -> created("Solicitud de préstamo creada exitosamente", loanRequestResponse));
+                .map(loanApplicationMapper::toModel)
+                .flatMap(loanApplicationService::saveLoanRequest)
+                .map(loanApplicationMapper::toResponse)
+                .flatMap(loanApplicationResponse -> created("Solicitud de préstamo creada exitosamente", loanApplicationResponse));
     }
 }

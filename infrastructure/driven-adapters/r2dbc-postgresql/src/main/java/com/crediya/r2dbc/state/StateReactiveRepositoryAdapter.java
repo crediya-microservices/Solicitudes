@@ -4,7 +4,6 @@ import com.crediya.model.state.State;
 import com.crediya.model.state.gateways.StateRepository;
 import com.crediya.r2dbc.entity.StateEntity;
 import com.crediya.r2dbc.helper.ReactiveAdapterOperations;
-import com.crediya.r2dbc.loanrequesting.LoanRequestReactiveRepository;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;

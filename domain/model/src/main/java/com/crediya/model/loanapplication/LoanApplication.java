@@ -1,8 +1,8 @@
-package com.crediya.model.loanrequesting;
+package com.crediya.model.loanapplication;
 
 import java.math.BigDecimal;
 
-public class LoanRequesting {
+public class LoanApplication {
     private Integer requestId;
     private BigDecimal amount;
     private Integer term;

@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 @Data
 @Table("solicitud")
-public class LoanRequestingEntity {
+public class LoanApplicationEntity {
     @Id
     @Column("id_solicitud")
     private Integer requestId;

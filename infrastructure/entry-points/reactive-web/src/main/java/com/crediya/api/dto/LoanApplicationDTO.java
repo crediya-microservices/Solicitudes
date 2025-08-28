@@ -1,10 +1,8 @@
 package com.crediya.api.dto;
 
-import jakarta.validation.constraints.NotBlank;
-
 import java.math.BigDecimal;
 
-public record LoanRequestDTO(
+public record LoanApplicationDTO(
         String requestId,
         BigDecimal amount,
         Integer term,

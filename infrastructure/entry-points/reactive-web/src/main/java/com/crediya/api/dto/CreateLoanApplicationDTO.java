@@ -6,7 +6,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class CreateLoanRequestDTO {
+public class CreateLoanApplicationDTO {
     @NotBlank(message = "El monto es obligatorio")
     private BigDecimal amount;
     @NotBlank(message = "El plazo es obligatorio")
