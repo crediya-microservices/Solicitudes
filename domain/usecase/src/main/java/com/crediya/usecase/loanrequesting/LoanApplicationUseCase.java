@@ -1,4 +1,4 @@
-package com.crediya.usecase.loanApplication;
+package com.crediya.usecase.loanrequesting;
 
 import com.crediya.model.loanapplication.LoanApplication;
 import com.crediya.model.loanapplication.gateways.LoanApplicationInputPort;
