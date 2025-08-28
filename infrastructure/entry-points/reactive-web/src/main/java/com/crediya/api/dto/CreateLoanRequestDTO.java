@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 
 @Data
 public class CreateLoanRequestDTO {
-    private Integer requestId;
     @NotBlank(message = "El monto es obligatorio")
     private BigDecimal amount;
     @NotBlank(message = "El plazo es obligatorio")

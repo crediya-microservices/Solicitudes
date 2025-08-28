@@ -25,6 +25,6 @@ public class LoanTypeEntity {
     @Column("tasa_interes")
     private BigDecimal interestRate;
 
-    @Column("valoracion_automatica")
+    @Column("validacion_automatica")
     private Boolean autoValidation;
 }

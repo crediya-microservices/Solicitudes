@@ -31,9 +31,10 @@ public class LoanRequestReactiveRepositoryAdapter extends ReactiveAdapterOperati
         entity.setLoanTypeId(loanTypeId);
         return this.repository.save(entity)
                 .map(saved -> {
-                    loanRequesting.setState(loanRequesting.getState());
-                    loanRequesting.setLoanType(loanRequesting.getLoanType());
-                    return loanRequesting;
+                    LoanRequesting result = mapper.map(saved, LoanRequesting.class);
+                    result.setState(loanRequesting.getState());
+                    result.setLoanType(loanRequesting.getLoanType());
+                    return result;
                 })
                 .onErrorMap(e -> new RuntimeException("Error al guardar la solicitud", e))
                 .as(transactionalOperator::transactional);

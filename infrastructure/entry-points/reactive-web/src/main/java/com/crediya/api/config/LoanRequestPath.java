@@ -8,6 +8,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Setter
 @ConfigurationProperties(prefix = "routes.paths")
 public class LoanRequestPath {
-    private String users;
-    private String userByIdentityDocument;
+    private String requests;
 }

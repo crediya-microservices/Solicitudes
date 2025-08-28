@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8082
 spring:
   application:
     name: "Solicitudes"
@@ -24,7 +24,7 @@ cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
 routes:
   paths:
-    requests: "/api/v1/solicitudes"
+    requests: "/api/v1/solicitud"
 adapters:
   r2dbc:
     host: "localhost"

@@ -4,6 +4,7 @@ import com.crediya.model.loantype.LoanType;
 import com.crediya.model.loantype.gateways.LoanTypeRepository;
 import com.crediya.r2dbc.entity.LoanTypeEntity;
 import com.crediya.r2dbc.helper.ReactiveAdapterOperations;
+import lombok.extern.slf4j.Slf4j;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
@@ -11,7 +12,8 @@ import reactor.core.publisher.Mono;
 import java.util.Objects;
 
 @Repository
-public class LoanTypeReactiveRepositoryAdapter  extends ReactiveAdapterOperations<
+@Slf4j
+public class LoanTypeReactiveRepositoryAdapter extends ReactiveAdapterOperations<
         LoanType,
         LoanTypeEntity,
         String,
@@ -26,6 +28,9 @@ public class LoanTypeReactiveRepositoryAdapter  extends ReactiveAdapterOperation
         return this.repository.findByName(name)
                 .filter(Objects::nonNull)
                 .map(entity -> mapper.map(entity, LoanType.class))
-                .onErrorMap(e -> new RuntimeException("Error al consultar tipo de préstamo por nombre", e));
+                .onErrorMap(e -> {
+                    log.error("Error al consultar tipo de préstamo por nombre: {}", e.getMessage());
+                    return new RuntimeException("Error al consultar tipo de préstamo por nombre", e);
+                });
     }
 }
