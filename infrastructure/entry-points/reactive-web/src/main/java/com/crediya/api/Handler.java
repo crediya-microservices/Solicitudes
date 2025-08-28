@@ -18,7 +18,7 @@ public class Handler extends BaseHandler {
     private final LoanApplicationService loanApplicationService;
     private final LoanApplicationMapper loanApplicationMapper;
 
-    public Mono<ServerResponse> listenSaveLoanRequest(ServerRequest serverRequest) {
+    public Mono<ServerResponse> listenSaveLoanApplication(ServerRequest serverRequest) {
         log.debug("Recibiendo petición para crear solicitud de préstamo");
 
         return serverRequest.bodyToMono(CreateLoanApplicationDTO.class)
