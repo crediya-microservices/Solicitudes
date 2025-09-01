@@ -20,11 +20,11 @@ public class Handler extends BaseHandler {
 
     public Mono<ServerResponse> listenSaveLoanApplication(ServerRequest serverRequest) {
         log.debug("Recibiendo petición para crear solicitud de préstamo");
-
+        String token = serverRequest.headers().firstHeader("Authorization");
         return serverRequest.bodyToMono(CreateLoanApplicationDTO.class)
                 .doOnNext(dto -> log.debug("Payload recibido: {}", dto))
                 .map(loanApplicationMapper::toModel)
-                .flatMap(loanApplicationService::saveLoanRequest)
+                .flatMap(loanApplication -> loanApplicationService.saveLoanRequest(loanApplication, token))
                 .map(loanApplicationMapper::toResponse)
                 .flatMap(loanApplicationResponse -> created("Solicitud de préstamo creada exitosamente", loanApplicationResponse));
     }

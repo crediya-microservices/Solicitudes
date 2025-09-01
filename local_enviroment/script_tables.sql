@@ -49,6 +49,7 @@ ADD COLUMN documeto_identidad VARCHAR(50);
 INSERT INTO estados (nombre, descripcion) VALUES
 ('Pendiente de revisión' , 'La solicitud está pendiente de revisión.'),
 ('Aprobado', 'La solicitud ha sido aprobada.'),
+('Revision manual', 'La solicitud requiere revisión manual.'),
 ('Rechazado', 'La solicitud ha sido rechazada.');
 
 INSERT INTO tipo_prestamo (nombre, monto_minimo, monto_maximo, tasa_interes, validacion_automatica) VALUES
