@@ -28,4 +28,14 @@ public class Handler extends BaseHandler {
                 .map(loanApplicationMapper::toResponse)
                 .flatMap(loanApplicationResponse -> created("Solicitud de préstamo creada exitosamente", loanApplicationResponse));
     }
+
+    public Mono<ServerResponse> listenListApplicationsForReview(ServerRequest serverRequest) {
+        log.debug("Recibiendo petición para listar solicitudes de préstamo en revisión");
+        String token = serverRequest.headers().firstHeader("Authorization");
+        int page = Integer.parseInt(serverRequest.queryParam("page").orElse("0"));
+        int size = Integer.parseInt(serverRequest.queryParam("size").orElse("10"));
+
+        return loanApplicationService.listApplicationsForReview(page, size, token)
+                .flatMap(applications -> ok("Listado de solicitudes en revisión", applications));
+    }
 }

@@ -1,5 +1,7 @@
 package com.crediya.api.service;
 
+import com.crediya.api.dto.IdentitiesRequestDTO;
+import com.crediya.api.dto.LoanApplicationWithUserDTO;
 import com.crediya.api.dto.UserDTO;
 import com.crediya.library.client.ApiResponse;
 import com.crediya.library.client.GatewayClient;
@@ -11,6 +13,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -32,6 +35,45 @@ public class LoanApplicationService {
                 .onErrorResume(error -> {
                     log.error("Fallo al obtener usuario: {}", error.getMessage());
                     return Mono.error(new RuntimeException("No se pudo registrar la solicitud, el usuario no fue encontrado: " + error.getMessage()));
+                });
+    }
+
+    public Mono<List<LoanApplicationWithUserDTO>> listApplicationsForReview(int page, int size, String token) {
+        log.info("Listando solicitudes en revisión - página {}, tamaño {}", page, size);
+
+        return loanApplicationInputPort.findByStates(page, size)
+                .flatMap(applications -> {
+                    List<String> identityDocs = applications.stream()
+                            .map(app -> app.getBase().getIdentityDocument())
+                            .toList();
+
+                    return fetchUsers(identityDocs, token)
+                            .map(users -> applications.stream()
+                                    .map(app -> {
+                                        UserDTO user = users.stream()
+                                                .filter(u -> u.identityDocument().equals(app.getBase().getIdentityDocument()))
+                                                .findFirst()
+                                                .orElse(null);
+                                        return LoanApplicationWithUserDTO.of(app, user);
+                                    })
+                                    .toList()
+                            );
+                });
+    }
+
+    private Mono<List<UserDTO>> fetchUsers(List<String> identityDocs, String token) {
+        String url = SERVICE_AUTH + "/identification-numbers";
+        Map<String, String> headers = Map.of("Authorization", token);
+        IdentitiesRequestDTO requestBody = new IdentitiesRequestDTO();
+        requestBody.setIdentities(identityDocs);
+
+        return gatewayClient.post(url, headers, requestBody,
+                        new ParameterizedTypeReference<ApiResponse<List<UserDTO>>>() {
+                        })
+                .map(ApiResponse::getContent)
+                .onErrorResume(error -> {
+                    log.error("Error al obtener usuarios: {}", error.getMessage());
+                    return Mono.just(List.of());
                 });
     }
 

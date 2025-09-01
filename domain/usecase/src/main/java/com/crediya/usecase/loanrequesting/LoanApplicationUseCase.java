@@ -1,15 +1,21 @@
 package com.crediya.usecase.loanrequesting;
 
 import com.crediya.model.loanapplication.LoanApplication;
+import com.crediya.model.loanapplication.LoanApplicationExtended;
 import com.crediya.model.loanapplication.gateways.LoanApplicationInputPort;
 import com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import com.crediya.model.loantype.LoanType;
 import com.crediya.model.loantype.gateways.LoanTypeRepository;
 import com.crediya.model.state.State;
 import com.crediya.model.state.gateways.StateRepository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
+import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 
@@ -55,6 +61,75 @@ public class LoanApplicationUseCase implements LoanApplicationInputPort {
                 .doOnSuccess(saved -> logger.info("Solicitud de préstamo guardada correctamente con ID: " + saved.getRequestId()))
                 .doOnError(error -> logger.severe("Error al guardar la solicitud de préstamo: " + error.getMessage()));
     }
+
+    @Override
+    public Mono<List<LoanApplicationExtended>> findByStates(int page, int size) {
+        return loanApplicationRepository.findByStateIds(page, size)
+                .flatMap(app ->
+                        loanTypeRepository.getLoanTypeById(Integer.valueOf(app.getLoanTypeId()))
+                                .defaultIfEmpty(new LoanType())
+                                .map(loanType -> {
+                                    LoanApplicationExtended extended = new LoanApplicationExtended(app);
+                                    extended.setInterestRate(loanType.getInterestRate());
+                                    return extended;
+                                })
+                                .flatMap(this::calculateDebt)
+                )
+                .collectList()
+                .doOnError(error -> logger.severe("Error al obtener solicitudes de préstamo: " + error.getMessage()));
+    }
+
+    private Mono<LoanApplicationExtended> calculateDebt(LoanApplicationExtended app) {
+        return loanApplicationRepository.findApprovedByIdentity(app.getBase().getIdentityDocument())
+                .flatMap(loan ->
+                        {
+                            String loanTypeId = loan.getLoanTypeId();
+                            if (loanTypeId == null) {
+                                return Mono.just(calculateMonthlyPayment(loan.getAmount(), loan.getTerm(), app.getInterestRate()));
+                            }
+                            return loanTypeRepository.getLoanTypeById(Integer.valueOf(loanTypeId))
+                                    .map(loanType -> calculateMonthlyPayment(loan.getAmount(), loan.getTerm(), loanType.getInterestRate()))
+                                    .defaultIfEmpty(calculateMonthlyPayment(loan.getAmount(), loan.getTerm(), app.getInterestRate()));
+                        }
+                )
+                .collectList()
+                .map(monthlyPayments -> {
+                    BigDecimal totalDebt = monthlyPayments.stream()
+                            .filter(Objects::nonNull)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    app.setTotalMonthlyDebt(totalDebt);
+                    return app;
+                });
+    }
+
+    /**
+     * Calcula la cuota mensual de un préstamo amortizado.
+     * monthlyRatePercent: 1.5 para 1.5% (el método convierte internamente a 0.015)
+     */
+    private BigDecimal calculateMonthlyPayment(BigDecimal principal, Integer termMonths, BigDecimal monthlyRatePercent) {
+        if (principal == null || termMonths == null || termMonths == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal monthlyRate = monthlyRatePercent == null
+                ? BigDecimal.ZERO
+                : monthlyRatePercent.divide(BigDecimal.valueOf(100), 18, RoundingMode.HALF_UP); // convierte % -> decimal
+
+        if (monthlyRate.compareTo(BigDecimal.ZERO) == 0) {
+            // sin interés: dividir principal entre meses
+            return principal.divide(BigDecimal.valueOf(termMonths), 2, RoundingMode.HALF_UP);
+        }
+
+        MathContext mc = new MathContext(18, RoundingMode.HALF_UP);
+        BigDecimal onePlusR = BigDecimal.ONE.add(monthlyRate, mc);
+        BigDecimal pow = onePlusR.pow(termMonths, mc); // (1+r)^n
+
+        BigDecimal numerator = principal.multiply(monthlyRate, mc).multiply(pow, mc); // P * r * (1+r)^n
+        BigDecimal denominator = pow.subtract(BigDecimal.ONE, mc); // (1+r)^n - 1
+
+        return numerator.divide(denominator, 2, RoundingMode.HALF_UP);
+    }
+
 
     private void validateAmount(BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {

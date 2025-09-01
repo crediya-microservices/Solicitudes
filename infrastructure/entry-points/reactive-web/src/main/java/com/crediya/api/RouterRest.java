@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
@@ -22,6 +23,7 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @RequiredArgsConstructor
 public class RouterRest {
     private final LoanApplicationPath loanApplicationPath;
+
     @Bean
     @RouterOperations({
             @RouterOperation(
@@ -78,6 +80,7 @@ public class RouterRest {
             )
     })
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {
-        return route(POST(loanApplicationPath.getRequests()), handler::listenSaveLoanApplication);
+        return route(POST(loanApplicationPath.getRequests()), handler::listenSaveLoanApplication)
+                .andRoute(GET(loanApplicationPath.getRequests()), handler::listenListApplicationsForReview);
     }
 }

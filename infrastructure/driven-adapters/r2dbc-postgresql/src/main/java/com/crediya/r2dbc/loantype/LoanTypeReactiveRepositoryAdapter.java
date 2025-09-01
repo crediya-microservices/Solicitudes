@@ -33,4 +33,15 @@ public class LoanTypeReactiveRepositoryAdapter extends ReactiveAdapterOperations
                     return new RuntimeException("Error al consultar tipo de préstamo por nombre", e);
                 });
     }
+
+    @Override
+    public Mono<LoanType> getLoanTypeById(Integer id) {
+        return this.repository.findById(String.valueOf(id))
+                .filter(Objects::nonNull)
+                .map(entity -> mapper.map(entity, LoanType.class))
+                .onErrorMap(e -> {
+                    log.error("Error al consultar tipo de préstamo por ID: {}", e.getMessage());
+                    return new RuntimeException("Error al consultar tipo de préstamo por ID", e);
+                });
+    }
 }
