@@ -4,5 +4,5 @@ import com.crediya.model.loanapplication.LoanApplication;
 import reactor.core.publisher.Mono;
 
 public interface LoanApplicationRepository {
-    Mono<LoanApplication> Save(LoanApplication loanApplication, Integer stateId, Integer loanTypeId );
+    Mono<LoanApplication> save(LoanApplication loanApplication, Integer stateId, Integer loanTypeId );
 }

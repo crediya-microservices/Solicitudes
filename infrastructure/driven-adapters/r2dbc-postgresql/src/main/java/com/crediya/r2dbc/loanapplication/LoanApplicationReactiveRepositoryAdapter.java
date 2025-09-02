@@ -25,7 +25,7 @@ public class LoanApplicationReactiveRepositoryAdapter extends ReactiveAdapterOpe
     }
 
     @Override
-    public Mono<LoanApplication> Save(LoanApplication loanApplication, Integer stateId, Integer loanTypeId) {
+    public Mono<LoanApplication> save(LoanApplication loanApplication, Integer stateId, Integer loanTypeId) {
         LoanApplicationEntity entity = mapper.map(loanApplication, LoanApplicationEntity.class);
         entity.setStateId(stateId);
         entity.setLoanTypeId(loanTypeId);

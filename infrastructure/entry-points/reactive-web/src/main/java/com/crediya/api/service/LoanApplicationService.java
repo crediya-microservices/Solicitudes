@@ -7,6 +7,7 @@ import com.crediya.model.loanapplication.LoanApplication;
 import com.crediya.model.loanapplication.gateways.LoanApplicationInputPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -20,12 +21,15 @@ import java.util.Map;
 public class LoanApplicationService {
     private final LoanApplicationInputPort loanApplicationInputPort;
     private final GatewayClient gatewayClient;
-    private final String SERVICE_AUTH = "autenticacion/api/v1/usuarios/";
+    @Value("${services.auth.base-url}")
+    private String authBaseUrl;
+    @Value("${services.auth.endpoints.get-user}")
+    private String getUserEndpoint;
 
     public Mono<LoanApplication> saveLoanRequest(LoanApplication loanApplication, String token) {
-        String url = SERVICE_AUTH + loanApplication.getEmail();
+        String url = getUserEndpoint + loanApplication.getEmail();
         Map<String, String> headers = Map.of("Authorization", token);
-        return gatewayClient.get(url, headers, new ParameterizedTypeReference<ApiResponse<UserDTO>>() {
+        return gatewayClient.get(authBaseUrl, url, headers, new ParameterizedTypeReference<ApiResponse<UserDTO>>() {
                 }).doOnNext(response -> log.info("Usuario encontrado: {}", response.getContent()))
                 .doOnError(error -> log.error("Error al buscar usuario: {}", error.getMessage()))
                 .flatMap(response -> loanApplicationInputPort.save(loanApplication))

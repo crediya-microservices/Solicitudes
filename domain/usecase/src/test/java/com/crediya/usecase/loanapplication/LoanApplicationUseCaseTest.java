@@ -66,7 +66,7 @@ class LoanApplicationUseCaseTest {
 
         when(loanTypeRepository.getLoanTypeByName("Personal")).thenReturn(Mono.just(loanType));
         when(stateRepository.getStateByName("Pendiente de revisión")).thenReturn(Mono.just(state));
-        when(loanApplicationRepository.Save(any(), eq(state.getStateId()), eq(loanType.getLoanTypeId())))
+        when(loanApplicationRepository.save(any(), eq(state.getStateId()), eq(loanType.getLoanTypeId())))
                 .thenAnswer(invocation -> {
                     LoanApplication saved = invocation.getArgument(0);
                     saved.setRequestId(999);
@@ -77,7 +77,7 @@ class LoanApplicationUseCaseTest {
                 .expectNextMatches(saved -> saved.getRequestId() == 999 && "Pendiente de revisión".equals(saved.getState()))
                 .verifyComplete();
 
-        verify(loanApplicationRepository, times(1)).Save(any(), any(), any());
+        verify(loanApplicationRepository, times(1)).save(any(), any(), any());
     }
 
     @Test
