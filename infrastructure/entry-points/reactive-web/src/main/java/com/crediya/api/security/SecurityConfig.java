@@ -15,7 +15,7 @@ import org.springframework.security.web.server.authentication.AuthenticationWebF
 @EnableWebFluxSecurity
 public class SecurityConfig {
     private static final String ADMIN = "Admin";
-    private static final String ADVISER = "Adviser";
+    private static final String ADVISER = "adviser";
     private static final String USER = "User";
     private final JwtUtil jwtUtil;
 
@@ -46,8 +46,8 @@ public class SecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/api/v1/login", "/swagger-ui/**", "/v3/api-docs/**", "/actuator/**")
                         .permitAll()
-                        .pathMatchers(HttpMethod.POST,"/*/api/v1/solicitud").hasAnyRole(USER)
-                        .pathMatchers(HttpMethod.GET,"/*/api/v1/solicitud").hasAnyRole(ADVISER)
+                        .pathMatchers(HttpMethod.POST,"/api/v1/solicitud").hasAnyRole(USER)
+                        .pathMatchers(HttpMethod.GET,"/api/v1/solicitud").hasAnyRole(ADVISER)
                         .anyExchange().authenticated()
                 )
                 .addFilterAt(jwtAuthFilter, SecurityWebFiltersOrder.AUTHENTICATION)

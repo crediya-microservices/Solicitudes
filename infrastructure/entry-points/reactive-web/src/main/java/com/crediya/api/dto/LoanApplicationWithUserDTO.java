@@ -1,6 +1,5 @@
 package com.crediya.api.dto;
 
-import com.crediya.model.loanapplication.LoanApplication;
 import com.crediya.model.loanapplication.LoanApplicationExtended;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -51,9 +50,9 @@ public class LoanApplicationWithUserDTO {
                 .amount(app.getBase().getAmount())
                 .term(app.getBase().getTerm())
                 .email(app.getBase().getEmail())
-                .loanType(app.getBase().getLoanTypeId())
+                .loanType(app.getLoanTypeName())
+                .applicationState(app.getStateName())
                 .interestRate(app.getInterestRate())
-                .applicationState(app.getBase().getStateId())
                 .baseSalary(user != null ? user.baseSalary() : null)
                 .name(user != null ? user.name() + " " + user.lastName() : null)
                 .totalMonthlyDebt(app.getTotalMonthlyDebt())

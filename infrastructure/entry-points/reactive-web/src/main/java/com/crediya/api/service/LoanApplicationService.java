@@ -66,12 +66,12 @@ public class LoanApplicationService {
     }
 
     private Mono<List<UserDTO>> fetchUsers(List<String> identityDocs, String token) {
-        String url = SERVICE_AUTH + "/identification-numbers";
+        String url = getUserEndpoint + "/identification-numbers";
         Map<String, String> headers = Map.of("Authorization", token);
         IdentitiesRequestDTO requestBody = new IdentitiesRequestDTO();
         requestBody.setIdentities(identityDocs);
 
-        return gatewayClient.post(url, headers, requestBody,
+        return gatewayClient.post(authBaseUrl,url, headers, requestBody,
                         new ParameterizedTypeReference<ApiResponse<List<UserDTO>>>() {
                         })
                 .map(ApiResponse::getContent)

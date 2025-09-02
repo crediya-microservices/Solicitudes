@@ -66,18 +66,26 @@ public class LoanApplicationUseCase implements LoanApplicationInputPort {
     public Mono<List<LoanApplicationExtended>> findByStates(int page, int size) {
         return loanApplicationRepository.findByStateIds(page, size)
                 .flatMap(app ->
-                        loanTypeRepository.getLoanTypeById(Integer.valueOf(app.getLoanTypeId()))
-                                .defaultIfEmpty(new LoanType())
-                                .map(loanType -> {
-                                    LoanApplicationExtended extended = new LoanApplicationExtended(app);
-                                    extended.setInterestRate(loanType.getInterestRate());
-                                    return extended;
-                                })
-                                .flatMap(this::calculateDebt)
+                        Mono.zip(
+                                loanTypeRepository.getLoanTypeById(Integer.valueOf(app.getLoanTypeId()))
+                                        .defaultIfEmpty(new LoanType()),
+                                stateRepository.getStateById(app.getStateId())
+                                        .defaultIfEmpty(new State())
+                        ).map(tuple -> {
+                            LoanType loanType = tuple.getT1();
+                            State state = tuple.getT2();
+
+                            LoanApplicationExtended extended = new LoanApplicationExtended(app);
+                            extended.setInterestRate(loanType.getInterestRate());
+                            extended.setLoanTypeName(loanType.getName());
+                            extended.setStateName(state.getName());
+                            return extended;
+                        }).flatMap(this::calculateDebt)
                 )
                 .collectList()
                 .doOnError(error -> logger.severe("Error al obtener solicitudes de préstamo: " + error.getMessage()));
     }
+
 
     private Mono<LoanApplicationExtended> calculateDebt(LoanApplicationExtended app) {
         return loanApplicationRepository.findApprovedByIdentity(app.getBase().getIdentityDocument())
