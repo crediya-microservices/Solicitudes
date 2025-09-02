@@ -52,7 +52,7 @@ public class LoanApplicationUseCase implements LoanApplicationInputPort {
 
                     logger.info("Validaciones superadas: tipo de préstamo y estado inicial correctos");
 
-                    return loanApplicationRepository.Save(
+                    return loanApplicationRepository.save(
                             loanApplication,
                             stateEntity.getStateId(),
                             loanTypeEntity.getLoanTypeId()
