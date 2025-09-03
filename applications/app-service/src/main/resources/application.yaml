@@ -25,27 +25,26 @@ cors:
 routes:
   paths:
     requests: "/api/v1/solicitud"
-#adapters:
-#  r2dbc:
-#    host: ${SPRING_R2DBC_HOST:solicitudes-db}
-#    port: ${SPRING_R2DBC_PORT:5432}
-#    database: ${SPRING_R2DBC_DATABASE:solicitudes}
-#    schema: ${SPRING_R2DBC_SCHEMA:public}
-#    username: ${SPRING_R2DBC_USERNAME:postgres}
-#    password: ${SPRING_R2DBC_PASSWORD:postgres}
-
 adapters:
   r2dbc:
-    host: "localhost"
-    port: 5432
-    database: "solicitudes"
-    schema: "public"
-    username: "postgres"
-    password: "postgres"
+    host: ${SPRING_R2DBC_HOST:solicitudes-db}
+    port: ${SPRING_R2DBC_PORT:5432}
+    database: ${SPRING_R2DBC_DATABASE:solicitudes}
+    schema: ${SPRING_R2DBC_SCHEMA:public}
+    username: ${SPRING_R2DBC_USERNAME:postgres}
+    password: ${SPRING_R2DBC_PASSWORD:postgres}
+
+#adapters:
+#  r2dbc:
+#    host: "localhost"
+#    port: 5432
+#    database: "solicitudes"
+#    schema: "public"
+#    username: "postgres"
+#    password: "postgres"
 services:
   auth:
-    base-url: http://localhost:8081
-
+    base-url: http://autenticacion-app:8081
     endpoints:
       get-user: "/api/v1/usuarios/"
 
