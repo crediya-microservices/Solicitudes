@@ -68,7 +68,7 @@ public class LoanApplicationService {
     }
 
     private Mono<List<UserDTO>> fetchUsers(List<String> identityDocs, String token) {
-        String url = getUserEndpoint + "/identification-numbers";
+        String url = getUserEndpoint + "identification-numbers";
         Map<String, String> headers = Map.of("Authorization", token);
         IdentitiesRequestDTO requestBody = new IdentitiesRequestDTO();
         requestBody.setIdentities(identityDocs);
@@ -78,7 +78,7 @@ public class LoanApplicationService {
                         })
                 .map(ApiResponse::getContent)
                 .onErrorResume(error -> {
-                    log.error("Error al obtener usuarios: {}", error.getMessage());
+                    log.error("Error al obtener usuarios, verifique los documentos de identidad asociados a las solicitudes: {}", error.getMessage());
                     return Mono.just(List.of());
                 });
     }
