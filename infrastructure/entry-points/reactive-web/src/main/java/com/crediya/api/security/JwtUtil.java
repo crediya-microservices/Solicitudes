@@ -11,11 +11,9 @@ import java.security.Key;
 public class JwtUtil {
 
     private final Key key;
-    private final long expirationMillis;
 
     public JwtUtil(Environment env) {
         String secret = env.getProperty("jwt.secret", "defaultSecretKey");
-        this.expirationMillis = Long.parseLong(env.getProperty("jwt.expiration-ms", "3600000"));
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 

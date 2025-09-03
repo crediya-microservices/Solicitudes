@@ -1,6 +1,7 @@
 package com.crediya.usecase.loanrequesting;
 
 import com.crediya.model.loanapplication.LoanApplication;
+import com.crediya.model.loanapplication.LoanApplicationExtended;
 import com.crediya.model.loanapplication.gateways.LoanApplicationInputPort;
 import com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import com.crediya.model.loantype.LoanType;
@@ -8,8 +9,12 @@ import com.crediya.model.loantype.gateways.LoanTypeRepository;
 import com.crediya.model.state.State;
 import com.crediya.model.state.gateways.StateRepository;
 import reactor.core.publisher.Mono;
+import reactor.util.annotation.Nullable;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 
@@ -56,8 +61,77 @@ public class LoanApplicationUseCase implements LoanApplicationInputPort {
                 .doOnError(error -> logger.severe("Error al guardar la solicitud de préstamo: " + error.getMessage()));
     }
 
+    @Override
+    public Mono<List<LoanApplicationExtended>> findByStates(
+            int page, int size, @Nullable String email, @Nullable String loanType, @Nullable String status) {
+        return loanApplicationRepository.findByStateIds(page, size, email, loanType, status)
+                .flatMap(app ->
+                        Mono.zip(
+                                loanTypeRepository.getLoanTypeById(Integer.valueOf(app.getLoanTypeId()))
+                                        .defaultIfEmpty(new LoanType()),
+                                stateRepository.getStateById(app.getStateId())
+                                        .defaultIfEmpty(new State())
+                        ).map(tuple -> {
+                            LoanType loanTypeEntity = tuple.getT1();
+                            State state = tuple.getT2();
+
+                            LoanApplicationExtended extended = new LoanApplicationExtended(app);
+                            extended.setInterestRate(loanTypeEntity.getInterestRate());
+                            extended.setLoanTypeName(loanTypeEntity.getName());
+                            extended.setStateName(state.getName());
+                            return extended;
+                        }).flatMap(this::calculateDebt)
+                )
+                .collectList()
+                .doOnError(error -> logger.severe("Error al obtener solicitudes de préstamo: " + error.getMessage()));
+    }
+
+
+    private Mono<LoanApplicationExtended> calculateDebt(LoanApplicationExtended app) {
+        return loanApplicationRepository.findApprovedByIdentity(app.getBase().getIdentityDocument())
+                .flatMap(loan ->
+                        {
+                            String loanTypeId = loan.getLoanTypeId();
+                            if (loanTypeId == null)
+                                return Mono.just(calculateMonthlyPayment(loan.getAmount(), loan.getTerm(), app.getInterestRate()));
+
+                            return loanTypeRepository.getLoanTypeById(Integer.valueOf(loanTypeId))
+                                    .map(loanType -> calculateMonthlyPayment(loan.getAmount(), loan.getTerm(), loanType.getInterestRate()))
+                                    .defaultIfEmpty(calculateMonthlyPayment(loan.getAmount(), loan.getTerm(), app.getInterestRate()));
+                        }
+                )
+                .collectList()
+                .map(monthlyPayments -> {
+                    BigDecimal totalDebt = monthlyPayments.stream()
+                            .filter(Objects::nonNull)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    app.setTotalMonthlyDebt(totalDebt);
+                    return app;
+                });
+    }
+
+    private BigDecimal calculateMonthlyPayment(BigDecimal principal, Integer termMonths, BigDecimal monthlyRatePercent) {
+        if (principal == null || termMonths == null || termMonths == 0) return BigDecimal.ZERO;
+
+        BigDecimal monthlyRate = monthlyRatePercent == null
+                ? BigDecimal.ZERO
+                : monthlyRatePercent.divide(BigDecimal.valueOf(100), 18, RoundingMode.HALF_UP);
+
+        if (monthlyRate.compareTo(BigDecimal.ZERO) == 0) {
+            return principal.divide(BigDecimal.valueOf(termMonths), 2, RoundingMode.HALF_UP);
+        }
+
+        BigDecimal onePlusR = BigDecimal.ONE.add(monthlyRate);
+        BigDecimal pow = onePlusR.pow(termMonths);
+        BigDecimal numerator = principal.multiply(monthlyRate).multiply(pow);
+        BigDecimal denominator = pow.subtract(BigDecimal.ONE);
+
+        return numerator.divide(denominator, 2, RoundingMode.HALF_UP);
+    }
+
     private void validateAmount(BigDecimal amount) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+        Objects.requireNonNull(amount, "El monto no puede ser nulo");
+        if (amount.signum() <= 0) {
             throw new IllegalArgumentException("El monto debe ser mayor que cero");
         }
     }
