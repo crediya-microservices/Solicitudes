@@ -5,6 +5,7 @@ import com.crediya.model.loanapplication.LoanApplicationWithExtras;
 import com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import com.crediya.r2dbc.entity.LoanApplicationEntity;
 import com.crediya.r2dbc.helper.ReactiveAdapterOperations;
+import io.micrometer.common.lang.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
@@ -45,11 +46,15 @@ public class LoanApplicationReactiveRepositoryAdapter extends ReactiveAdapterOpe
     }
 
     @Override
-    public Flux<LoanApplicationWithExtras> findByStateIds(int page, int size) {
+    public Flux<LoanApplicationWithExtras> findByStateIds(int page,
+                                                          int size,
+                                                          @Nullable String email,
+                                                          @Nullable String loanType,
+                                                          @Nullable String status) {
         int offset = page * size;
         log.info("Ejecutando query con offset={} size={}", offset, size);
 
-        return repository.findAllExceptStateTwo(offset, size)
+        return repository.findAllFiltered(offset, size, email, loanType, status)
                 .doOnSubscribe(sub -> log.info("Consultando solicitudes en BD..."))
                 .doOnNext(entity -> log.info("Entidad cruda desde BD: {}", entity))
                 .map(entity -> mapper.map(entity, LoanApplicationWithExtras.class))

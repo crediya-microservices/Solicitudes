@@ -105,11 +105,14 @@ class LoanApplicationUseCaseTest {
     @Test
     void shouldFailWhenAmountIsNull() {
         LoanApplication application = buildApplication(null);
-        when(loanTypeRepository.getLoanTypeByName("Personal")).thenReturn(Mono.just(buildLoanType(BigDecimal.valueOf(100), BigDecimal.valueOf(1000))));
-        when(stateRepository.getStateByName("Pendiente de revisión")).thenReturn(Mono.just(buildState()));
+        when(loanTypeRepository.getLoanTypeByName("Personal"))
+                .thenReturn(Mono.just(buildLoanType(BigDecimal.valueOf(100), BigDecimal.valueOf(1000))));
+        when(stateRepository.getStateByName("Pendiente de revisión"))
+                .thenReturn(Mono.just(buildState()));
 
         StepVerifier.create(useCase.save(application))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException && e.getMessage().contains("monto debe ser mayor"))
+                .expectErrorMatches(e -> e instanceof NullPointerException
+                        && e.getMessage().contains("El monto no puede ser nulo"))
                 .verify();
     }
 
@@ -147,5 +150,6 @@ class LoanApplicationUseCaseTest {
                 .expectErrorMatches(e -> e instanceof IllegalArgumentException && e.getMessage().contains("no está dentro del rango"))
                 .verify();
     }
+
 }
 

@@ -7,6 +7,7 @@ import com.crediya.library.client.ApiResponse;
 import com.crediya.library.client.GatewayClient;
 import com.crediya.model.loanapplication.LoanApplication;
 import com.crediya.model.loanapplication.gateways.LoanApplicationInputPort;
+import io.micrometer.common.lang.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,10 +43,11 @@ public class LoanApplicationService {
                 });
     }
 
-    public Mono<List<LoanApplicationWithUserDTO>> listApplicationsForReview(int page, int size, String token) {
+    public Mono<List<LoanApplicationWithUserDTO>> listApplicationsForReview(
+            int page, int size, String token, @Nullable String email, @Nullable String loanType, @Nullable String status) {
         log.info("Listando solicitudes en revisión - página {}, tamaño {}", page, size);
 
-        return loanApplicationInputPort.findByStates(page, size)
+        return loanApplicationInputPort.findByStates(page, size, email, loanType, status)
                 .flatMap(applications -> {
                     List<String> identityDocs = applications.stream()
                             .map(app -> app.getBase().getIdentityDocument())
@@ -71,7 +73,7 @@ public class LoanApplicationService {
         IdentitiesRequestDTO requestBody = new IdentitiesRequestDTO();
         requestBody.setIdentities(identityDocs);
 
-        return gatewayClient.post(authBaseUrl,url, headers, requestBody,
+        return gatewayClient.post(authBaseUrl, url, headers, requestBody,
                         new ParameterizedTypeReference<ApiResponse<List<UserDTO>>>() {
                         })
                 .map(ApiResponse::getContent)
